@@ -71,11 +71,12 @@ public class DriveUploader {
         // Upload
         uploadFile(service,nombre);
         
-        // Print the names and IDs for up to 10 files. Set DriveScopes.DRIVE_METADATA_READONLY
         //printFilesName(service);
     }
     
-    private static void uploadFile(Drive service, String nombre) throws IOException {    	
+    private static void uploadFile(Drive service, String nombre) throws IOException {    
+    	
+    	String fileId = getExistingFileId(service, nombre);
     	
     	File fileMetadata = new File();
         fileMetadata.setName(nombre);
@@ -83,12 +84,38 @@ public class DriveUploader {
 
         java.io.File filePath = new java.io.File(nombre+".csv");
         FileContent mediaContent = new FileContent("text/csv", filePath);
-        File file = service.files().create(fileMetadata, mediaContent)
-            .setFields("id")
-            .execute();
+        
+        File file = null;
+        if (fileId == null) {
+	        file = service.files().create(fileMetadata, mediaContent)
+	            .setFields("id")
+	            .execute();
+        } else {
+        	file = service.files().update(fileId, fileMetadata, mediaContent).execute();
+        }
         System.out.println("File ID: " + file.getId());
     }
     
+    private static String getExistingFileId(Drive service, String nombre) throws IOException {    	
+    	
+    	FileList result = service.files().list()
+                .setFields("files(id, name)")
+                .execute();
+    	
+    	List<File> files = result.getFiles();
+    	if (files != null && !files.isEmpty()) {
+    		for (File file : files) {
+    			if (nombre.equals(file.getName())) {
+    				return file.getId();
+    			}
+            }
+    	}    	
+    	return null;
+    }
+    
+    /**
+     * Print the names and IDs for up to 10 files. Set DriveScopes.DRIVE_METADATA_READONLY
+     */
     public static void printFilesName(Drive service) throws IOException {
         FileList result = service.files().list()
                 .setPageSize(10)
@@ -104,4 +131,5 @@ public class DriveUploader {
             }
         }
     }
+
 }
