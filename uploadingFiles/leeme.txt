@@ -1,1 +1,2 @@
-construir con mvn clean compile assembly:single
+construir con mvn package
+el jar queda en /target

@@ -1,5 +1,13 @@
 package com.tmb.driveUploader;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -16,15 +24,8 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.List;
-
 public class DriveUploader {
-    private static final String APPLICATION_NAME = "Google Drive API Java Quickstart";
+    private static final String APPLICATION_NAME = "TMB Drive Upload";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
@@ -33,7 +34,7 @@ public class DriveUploader {
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_FILE);
-    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    private static final String CREDENTIALS_FILE_PATH = "credentials.json";
 
     /**
      * Creates an authorized Credential object.
@@ -43,7 +44,8 @@ public class DriveUploader {
      */
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
-        InputStream in = DriveUploader.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        //InputStream in = DriveUploader.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+    	InputStream in = new FileInputStream(CREDENTIALS_FILE_PATH);
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         // Build flow and trigger user authorization request.
@@ -90,8 +92,10 @@ public class DriveUploader {
 	        file = service.files().create(fileMetadata, mediaContent)
 	            .setFields("id")
 	            .execute();
+	        System.out.println("Created a new file");
         } else {
         	file = service.files().update(fileId, fileMetadata, mediaContent).execute();
+        	System.out.println("Updated file");
         }
         System.out.println("File ID: " + file.getId());
     }
